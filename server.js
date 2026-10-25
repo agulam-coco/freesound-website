@@ -46,8 +46,8 @@ app.use((req, res, next) => {
   if (pathname === "/404" || pathname === "/404.html") return next("route");
 
   // /about.html -> /about
-  if (pathname.endsWith(".html")) return res.redirect(301, `${pathname.slice(0, -5)}${qs}`);
-
+  if (pathname.endsWith(".html") && !/^\/google[0-9a-f]+\.html$/.test(pathname)) return res.redirect(301, `${pathname.slice(0, -5)}${qs}`);
+  
   // /about/ -> /about
   if (pathname.length > 1 && pathname.endsWith("/")) {
     return res.redirect(301, `${pathname.replace(/\/+$/, "")}${qs}`);
