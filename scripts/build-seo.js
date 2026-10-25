@@ -2,6 +2,9 @@
 // page with its own <title>, description, canonical, Open Graph tags, and
 // (on the home page) structured data. Also writes 404.html, sitemap.xml, robots.txt.
 //
+// It also takes the prerendered home page from dist-ssr/ (built by
+// `vite build --ssr src/entry-server.jsx`) and puts it inside <div id="root">.
+//
 // Why: the site is a client-rendered SPA, so without this every URL ships the
 // exact same <head>. Google mostly copes, but link previews (iMessage, Instagram,
 // Discord, Slack) and Bing don't run JS and would see the same generic tags everywhere.
@@ -13,6 +16,7 @@ import { SITE_URL, pages } from "../src/seo.js";
 import { socials } from "../src/siteData.js";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
+const { render: renderApp } = await import(path.join(root, "dist-ssr", "entry-server.js"));
 const dist = path.join(root, "dist");
 const template = fs.readFileSync(path.join(dist, "index.html"), "utf8");
 
@@ -48,6 +52,16 @@ const orgJsonLd = {
   sameAs: socials.filter((s) => s.label !== "Grinnell").map((s) => s.href)
 };
 
+// WebSite schema tells Google which name to show above the result
+// ("FreeSound Grinnell" instead of guessing, which matters with freesound.org around).
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "FreeSound Grinnell",
+  alternateName: ["FreeSound", "Freesound Grinnell College"],
+  url: `${SITE_URL}/`
+};
+
 function headFor({ title, description, url, noindex = false, jsonLd }) {
   return [
     `<title>${esc(title)}</title>`,
@@ -70,20 +84,24 @@ function headFor({ title, description, url, noindex = false, jsonLd }) {
     .join("\n");
 }
 
-function render(head) {
+function render(head, bodyHtml = "") {
   // Strip the dev-time title/description from index.html, then inject ours.
   const stripped = template
     .replace(/<title>[\s\S]*?<\/title>\s*/i, "")
     .replace(/<meta\s+name="description"[^>]*>\s*/i, "");
   if (!stripped.includes("</head>")) throw new Error("dist/index.html has no </head>");
-  return stripped.replace("</head>", `${head}\n  </head>`);
+  const withHead = stripped.replace("</head>", `${head}\n  </head>`);
+  if (!bodyHtml) return withHead;
+  if (!withHead.includes('<div id="root"></div>')) throw new Error('dist/index.html has no empty <div id="root">');
+  return withHead.replace('<div id="root"></div>', () => `<div id="root">${bodyHtml}</div>`);
 }
 
 // Page files: "/" -> index.html, "/about" -> about.html (served at /about, no trailing slash)
 for (const page of pages) {
   const url = page.path === "/" ? `${SITE_URL}/` : `${SITE_URL}${page.path}`;
   const html = render(
-    headFor({ ...page, url, jsonLd: page.path === "/" ? orgJsonLd : null })
+    headFor({ ...page, url, jsonLd: page.path === "/" ? [orgJsonLd, websiteJsonLd] : null }),
+    page.path === "/" ? renderApp() : ""
   );
   const file = page.path === "/" ? "index.html" : `${page.path.slice(1)}.html`;
   fs.mkdirSync(path.dirname(path.join(dist, file)), { recursive: true });
@@ -91,6 +109,7 @@ for (const page of pages) {
   console.log(`seo: wrote ${file}`);
 }
 
+// The prerendered home page is now inside index.html, so the <noscript> copy is redundant.
 // 404 page: same app shell (React renders the NotFound route), but noindex.
 fs.writeFileSync(
   path.join(dist, "404.html"),
@@ -121,3 +140,4 @@ console.log("seo: wrote 404.html, sitemap.xml, robots.txt");
 if (SITE_URL.includes("example")) {
   console.warn("seo: WARNING SITE_URL in src/seo.js is still a placeholder");
 }
+

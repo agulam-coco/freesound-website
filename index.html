@@ -9,20 +9,22 @@
   <title>FreeSound Grinnell | Student Music Community at Grinnell College</title>
   <meta name="description" content="FreeSound is Grinnell College's student-run music community." />
   <meta name="theme-color" content="#f01818" />
+  <link rel="preconnect" href="https://framerusercontent.com" crossorigin />
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <!-- Without JavaScript the scroll animations never run, so show the prerendered content as-is. -->
+  <noscript>
+    <style>
+      [data-reveal], .split-text .char { opacity: 1 !important; filter: none !important; transform: none !important; }
+    </style>
+  </noscript>
 </head>
 
 <body>
   <div id="root"></div>
-  <noscript>
-    <h1>FreeSound Grinnell</h1>
-    <p>FreeSound is a student-run music community at Grinnell College: a practice room in the basement of Main
-      Hall, shared gear, sound training every Wednesday at 7pm, and campus shows like Showvember and The Grinnellian.
-      Email <a href="mailto:freesound@grinnell.edu">freesound@grinnell.edu</a>.</p>
-  </noscript>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 
 </html>
+

@@ -17,7 +17,7 @@ import {
 } from "./siteData.js";
 import { pages as seoPages } from "./seo.js";
 
-function cleanPath(pathname = window.location.pathname) {
+function cleanPath(pathname = typeof window === "undefined" ? "/" : window.location.pathname) {
   const path = pathname.replace(/\/+$/, "");
   return path || "/";
 }
@@ -234,7 +234,7 @@ function AnimatedText({ as: Tag = "span", children, className = "", ...props }) 
   let charIndex = 0;
 
   return (
-    <Tag className={`split-text ${className}`.trim()} {...props}>
+    <Tag className={`split-text ${className}`.trim()} aria-label={String(children)} {...props}>
       {words.map((word, wordIdx) => (
         <span key={wordIdx} className="word" style={{ display: "inline-block", whiteSpace: "nowrap" }}>
           {Array.from(word).map((char, i) => {
@@ -328,32 +328,7 @@ function App() {
 
 function resolveRoute(path) {
   if (path === "/") return { title: "FreeSound Grinnell | Where Student Music Lives", render: (navigate) => <HomePage navigate={navigate} /> };
-  if (path === "/about") return { title: "About", render: (navigate) => <AboutPage navigate={navigate} /> };
-  if (path === "/projects") {
-    return { title: "Events", render: (navigate) => <ProjectsPage navigate={navigate} /> };
-  }
-  if (path.startsWith("/projects/")) {
-    const slug = path.split("/").pop();
-    const project = projects.find((item) => item.slug === slug);
-    return {
-      title: project?.title || slugTitle(slug),
-      render: (navigate) => <ProjectDetail project={project} slug={slug} navigate={navigate} />
-    };
-  }
-  if (path === "/journal") {
-    return { title: "Archive", render: (navigate) => <JournalPage navigate={navigate} /> };
-  }
-  if (path.startsWith("/journal/")) {
-    const slug = path.split("/").pop();
-    const article = journals.find((item) => item.slug === slug);
-    return {
-      title: article?.title || slugTitle(slug),
-      render: (navigate) => <ArticlePage article={article} slug={slug} navigate={navigate} />
-    };
-  }
-  if (path === "/contact-us") {
-    return { title: "Connect", render: (navigate) => <ContactPage navigate={navigate} /> };
-  }
+  // Single-page site. The old /about, /projects, /journal and /contact-us pages are not used.
   return { title: "Not Found", render: (navigate) => <NotFound navigate={navigate} /> };
 }
 
@@ -1147,5 +1122,7 @@ function NotFound({ navigate }) {
   );
 }
 
+export { App };
 export default App;
+
 
