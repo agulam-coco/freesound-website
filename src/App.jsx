@@ -418,7 +418,7 @@ function Hero({ navigate }) {
       <div className="hero-media" data-parallax="0.045">
         <picture>
           <source srcSet={images.hero} media="(max-width: 809px)" />
-          <img src={images.hero} alt="Student band performing on stage at a FreeSound show at Grinnell College" fetchpriority="high" />
+          <img src={images.hero} alt="Student band performing on stage at a FreeSound show at Grinnell College" fetchPriority="high" />
         </picture>
       </div>
       <div className="hero-content">
